@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+    reverse-proxy:
+        build:
+            context: ./nginx
+            args:
+                CERTIFICATE_HOST: $CERTIFICATE_HOST
+                CERTIFICATE_DURATION: $CERTIFICATE_DURATION
+        restart: unless-stopped
+        ports:
+            - 80:80
+            - 443:443
+
+    sync:
+        image: syncthing/syncthing:1.22.0
+        restart: unless-stopped
+        depends_on:
+            - reverse-proxy
+        volumes:
+            - ~/volumes/sync:/var/syncthing
+        ports:
+            - 8384:8384
+            - 22000:22000/tcp
+            - 22000:22000/udp
+            - 21027:21027/udp
+        environment:
+            - PUID=1000
+            - PGID=1000
